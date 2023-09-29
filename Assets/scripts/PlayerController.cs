@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 input; //vector2 holds 2 values; X & Y 
     private Animator animator;
     public LayerMask solidObjectsLayer; 
+    public LayerMask interactablesLayer; 
     // Start is called before the first frame update
     private void Awake()
     {
@@ -16,7 +17,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // Update is called once per frame
-    private void Update()
+    public void HandleUpdate()
     {
         if (!isMoving)
         {
@@ -24,8 +25,8 @@ public class PlayerController : MonoBehaviour
             input.x = Input.GetAxisRaw("Horizontal");
             input.y = Input.GetAxisRaw("Vertical"); 
             
-            Debug.Log("this is input.x" + input.x);
-            Debug.Log("this is input.y" + input.y);
+            //Debug.Log("this is input.x" + input.x);
+            //Debug.Log("this is input.y" + input.y);
 
 
 
@@ -48,6 +49,24 @@ public class PlayerController : MonoBehaviour
             }
         }
         animator.SetBool("isMoving", isMoving); 
+
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            Interact();
+        }
+    }
+
+    void Interact(){
+        var facingDir = new Vector3(animator.GetFloat("moveX"), animator.GetFloat("moveY)"));
+        var interactPos = transform.position + facingDir; 
+
+        //Debug.DrawLine(transform.position, interactPos, Color.red, 1f); 
+
+        var collider = Physics2D.OverlapCircle(interactPos, 0.2f, interactablesLayer);
+        if (collider != null){
+            collider.GetComponent<Interactable>()?.Interact();
+        }
+
     }
 
     IEnumerator Move(Vector3 targetPos)
@@ -66,7 +85,7 @@ public class PlayerController : MonoBehaviour
 
     private bool IsWalkable(Vector3 targetPos)
     {
-        if (Physics2D.OverlapCircle(targetPos, 0.1f, solidObjectsLayer) != null)
+        if (Physics2D.OverlapCircle(targetPos, 0.2f, solidObjectsLayer | interactablesLayer) != null)
         {
             return false; 
         }
